@@ -1,0 +1,10 @@
+qualityqa数据集 arxiv https://arxiv.org/abs/2112.08608 github https://github.com/nyu-mll/quality/ 长文本阅读理解数据集 金融 科技 故事性文章 平均长度5000tokens 较长 train 150 dev 115 test 116 其中的故事性文章都来自https://www.gutenberg.org/ 之前看到的narrative qa数据集也是来自这里 NAACL2022 英文
+
+NarrativeQA 数据集 arxiv https://arxiv.org/abs/1712.07040 github https://github.com/google-deepmind/narrativeqa 叙述性故事数据集  平均长度30k 非常长 train dev test 排除网站失效的部分 共计 1548 由于太长所以目前的版本按单词/字符切分 8192  英文
+
+
+
+
+
+
+

@@ -1,0 +1,9 @@
+graphviz==0.20.3
+langchain==0.3.10
+langchain_experimental==0.3.3
+langchain_openai==0.2.11
+openai==1.57.0
+pandas==2.2.3
+pyarrow==14.0.2
+tiktoken==0.8.0
+tqdm==4.66.1
