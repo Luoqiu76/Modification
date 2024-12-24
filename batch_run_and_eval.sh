@@ -1,5 +1,11 @@
 #!/bin/bash
-
+# ./processed_datas/data_narrative_qa.jsonl \
+# ./processed_datas/data_quality_v1.0.1_train_dev_test.jsonl \
+# ./processed_datas/gov_report_e.jsonl \
+# ./processed_datas/multifieldqa_en.jsonl \
+# ./processed_datas/musique.jsonl \
+# ./processed_datas/qasper.jsonl \
+# ./processed_datas/qmsum.jsonl
 # api config for openai api
 CHAT_API_KEY="sk-6yr7BWUpTq1f26CHrAV5OJ0i90GpJtyqRVMEuXPue2B4lRkj"
 CHAT_BASE_URL="https://xiaoai.plus/v1"
@@ -22,7 +28,7 @@ BATCH_SIZE=128
 
 
 # pipline config
-DEPTH_LIMIT=1
+DEPTH_LIMIT=2
 CHUNK_SIZE=4096
 CHUNK_OVERLAP=0
 
@@ -48,7 +54,7 @@ LANGUAGE_INPUT_PATHS["zh"]="
 "  
 
 
-SAVE_DIR="./results/$CHAT_MODEL"
+SAVE_DIR="./results/$CHAT_MODEL/depth_${DEPTH_LIMIT}_chunk_${CHUNK_SIZE}_chunk_overlap_${CHUNK_OVERLAP}_no_chunk"
 
 
 for LANGUAGE in "en" "zh"; do
