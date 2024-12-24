@@ -1,33 +1,44 @@
 #!/bin/bash
 
-# api config
+# api config for openai api
 CHAT_API_KEY="sk-6yr7BWUpTq1f26CHrAV5OJ0i90GpJtyqRVMEuXPue2B4lRkj"
 CHAT_BASE_URL="https://xiaoai.plus/v1"
 CHAT_MODEL="gpt-4o-mini"
 JUDGE_MODEL="gpt-4o-mini"
 
 
+# azure config run model and judge model
+export CONFIG_NAME=""
+export JUDGE_CONFIG_NAME=""
+
+
+
+# max concurrent coroutines in every time
 MAX_CONCURRENT=4
+# wait time when one coroutine is finished 
 MAX_RATE_LIMIT=2
+# batch size for api request
 BATCH_SIZE=128
+
+
+# pipline config
 DEPTH_LIMIT=1
 CHUNK_SIZE=4096
 CHUNK_OVERLAP=0
 
 
-export CONFIG_NAME=""
-export JUDGE_CONFIG_NAME=""
+
 
 
 declare -A LANGUAGE_INPUT_PATHS
 
 LANGUAGE_INPUT_PATHS["en"]="
-./processed_datas/data_narrative_qa.jsonl
-./processed_datas/data_quality_v1.0.1_train_dev_test.jsonl
-./processed_datas/gov_report_e.jsonl
-./processed_datas/multifieldqa_en.jsonl
-./processed_datas/musique.jsonl
-./processed_datas/qasper.jsonl
+./processed_datas/data_narrative_qa.jsonl \
+./processed_datas/data_quality_v1.0.1_train_dev_test.jsonl \
+./processed_datas/gov_report_e.jsonl \
+./processed_datas/multifieldqa_en.jsonl \
+./processed_datas/musique.jsonl \
+./processed_datas/qasper.jsonl \
 ./processed_datas/qmsum.jsonl
 "
 
