@@ -8,3 +8,4 @@ datas
 /qwen_turbo_1101_cn
 /processed_datas/test.jsonl
 /processed_datas/statistic
+/results/gpt-4o-mini/test
