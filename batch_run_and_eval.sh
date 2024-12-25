@@ -6,6 +6,9 @@
 # ./processed_datas/musique.jsonl \
 # ./processed_datas/qasper.jsonl \
 # ./processed_datas/qmsum.jsonl
+
+
+# ./processed_datas/multifieldqa_zh.jsonl
 # api config for openai api
 CHAT_API_KEY="sk-6yr7BWUpTq1f26CHrAV5OJ0i90GpJtyqRVMEuXPue2B4lRkj"
 CHAT_BASE_URL="https://xiaoai.plus/v1"
@@ -13,9 +16,9 @@ CHAT_MODEL="gpt-4o-mini"
 JUDGE_MODEL="gpt-4o-mini"
 
 
-# azure config run model and judge model
-export CONFIG_NAME=""
-export JUDGE_CONFIG_NAME=""
+export OPENAI_API_KEY=""
+export CONFIG_NAME="gpt-4o"
+export JUDGE_CONFIG_NAME="gpt-4o"
 
 
 
@@ -28,7 +31,7 @@ BATCH_SIZE=128
 
 
 # pipline config
-DEPTH_LIMIT=2
+DEPTH_LIMIT=1
 CHUNK_SIZE=4096
 CHUNK_OVERLAP=0
 
@@ -102,7 +105,7 @@ for LANGUAGE in "en" "zh"; do
             --max_concurrent "$MAX_CONCURRENT" \
             --max_rate_limit "$MAX_RATE_LIMIT" \
             --batch_size "$BATCH_SIZE" \
-            # --enable_azure \
+            --enable_azure \
         
         echo "Start eval"
         
@@ -118,6 +121,6 @@ for LANGUAGE in "en" "zh"; do
             --max_concurrent "$MAX_CONCURRENT" \
             --max_rate_limit "$MAX_RATE_LIMIT" \
             --batch_size "$BATCH_SIZE" \
-            # --enable_azure \
+            --enable_azure \
     done
 done

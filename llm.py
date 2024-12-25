@@ -5,6 +5,7 @@ from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from typing import List, Union
 import asyncio
+import os
 
 class LLM():
     def __init__(self, model_name, base_url, api_key, log_path):
@@ -212,31 +213,29 @@ from openai import AzureOpenAI, AsyncAzureOpenAI
 
 max_retry_times = 5
 configs = {
-    "test": {
-        "azure_endpoint":"https://82634-m50u3n0v-swedencentral.cognitiveservices.azure.com/openai/deployments/gpt-4-32k/chat/completions?api-version=2024-08-01-preview",
-        "model":"gpt-4-32k",
-        "api_version":"2024-08-01-preview"
+    "gpt-4o": {
+        "azure_endpoint":"",
+        "model":"gpt-4o",
+        "api_version":""
     }
 }
 
 
 def get_client(config_name, async_mode = False):
     config = configs[config_name]
-    credential = AzureCliCredential()
-    token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
     if async_mode:
         client = AsyncAzureOpenAI(
             azure_endpoint=config["azure_endpoint"],
-            azure_ad_token_provider=token_provider,
             max_retries=max_retry_times,
-            api_version=config["api_version"]
+            api_version=config["api_version"],
+            api_key=os.environ["OPENAI_API_KEY"]
         )
     else:
         client = AzureOpenAI(
             azure_endpoint=config["azure_endpoint"],
-            azure_ad_token_provider=token_provider,
             max_retries=max_retry_times,
-            api_version=config["api_version"]
+            api_version=config["api_version"],
+            api_key=os.environ["OPENAI_API_KEY"]
         )
     return client
 
