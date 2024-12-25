@@ -120,8 +120,8 @@ async def execute_with_retry_async(func, max_retries=5, enable_wait = True, *arg
             except Exception as e:
                 retries += 1
                 errors.append((e, traceback.format_exc()))
-                print(f"Error: {e}")
-                print (f"Traceback: {traceback.format_exc()}")
+                # print(f"Error: {e}")
+                # print (f"Traceback: {traceback.format_exc()}")
                 if enable_wait:
                     await asyncio.sleep(get_wait_time(retries))
                 if retries >= max_retries:
@@ -207,8 +207,8 @@ def execute_with_retry(func, max_retries=5, enable_wait = True, *args, **kwargs)
             except Exception as e:
                 retries += 1
                 errors.append((e, traceback.format_exc()))
-                print(f"Error: {e}")
-                print (f"Traceback: {traceback.format_exc()}")
+                # print(f"Error: {e}")
+                # print (f"Traceback: {traceback.format_exc()}")
                 if enable_wait:
                     time.sleep(get_wait_time(retries))
                 if retries >= max_retries:
