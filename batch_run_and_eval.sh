@@ -16,7 +16,7 @@ CHAT_MODEL="gpt-4o-mini"
 JUDGE_MODEL="gpt-4o-mini"
 
 
-export OPENAI_API_KEY=""
+# export OPENAI_API_KEY=""
 export CONFIG_NAME="gpt-4o"
 export JUDGE_CONFIG_NAME="gpt-4o"
 
@@ -105,7 +105,7 @@ for LANGUAGE in "en" "zh"; do
             --max_concurrent "$MAX_CONCURRENT" \
             --max_rate_limit "$MAX_RATE_LIMIT" \
             --batch_size "$BATCH_SIZE" \
-            --enable_azure \
+            --azure 
         
         echo "Start eval"
         
@@ -121,6 +121,6 @@ for LANGUAGE in "en" "zh"; do
             --max_concurrent "$MAX_CONCURRENT" \
             --max_rate_limit "$MAX_RATE_LIMIT" \
             --batch_size "$BATCH_SIZE" \
-            --enable_azure \
+            --enable_azure
     done
 done

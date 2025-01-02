@@ -1,0 +1,17 @@
+{
+    "chat_model": "gpt-4o-mini",
+    "chat_api_key": "sk-6yr7BWUpTq1f26CHrAV5OJ0i90GpJtyqRVMEuXPue2B4lRkj",
+    "chat_base_url": "https://xiaoai.plus/v1",
+    "output_path": "./results/gpt-4o-mini/depth_1_chunk_4096_chunk_overlap_0_no_chunk/qasper/eval_result.json",
+    "log_path": "./results/gpt-4o-mini/depth_1_chunk_4096_chunk_overlap_0_no_chunk/qasper/eval_log.txt",
+    "language": "en",
+    "max_retries": 5,
+    "epsilon": 1e-05,
+    "work_dir": "./results/gpt-4o-mini/depth_1_chunk_4096_chunk_overlap_0_no_chunk/qasper",
+    "enable_async": true,
+    "enable_stream": true,
+    "max_concurrent": 4,
+    "max_rate_limit": 2,
+    "batch_size": 128,
+    "enable_azure": true
+}

@@ -214,9 +214,9 @@ from openai import AzureOpenAI, AsyncAzureOpenAI
 max_retry_times = 5
 configs = {
     "gpt-4o": {
-        "azure_endpoint":"",
+        "azure_endpoint":"http://52.151.57.21:9999",
         "model":"gpt-4o",
-        "api_version":""
+        "api_version":"2024-09-01-preview"
     }
 }
 
