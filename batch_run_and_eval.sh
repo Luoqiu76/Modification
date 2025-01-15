@@ -31,7 +31,7 @@ BATCH_SIZE=128
 
 
 # pipline config
-DEPTH_LIMIT=2
+DEPTH_LIMIT=1
 CHUNK_SIZE=4096
 CHUNK_OVERLAP=0
 
@@ -42,11 +42,18 @@ CHUNK_OVERLAP=0
 declare -A LANGUAGE_INPUT_PATHS
 
 LANGUAGE_INPUT_PATHS["en"]="
+./processed_datas/data_narrative_qa.jsonl \
+./processed_datas/data_quality_v1.0.1_train_dev_test.jsonl \
+./processed_datas/gov_report_e.jsonl \
+./processed_datas/multifieldqa_en.jsonl \
+./processed_datas/musique.jsonl \
+./processed_datas/qasper.jsonl \
 ./processed_datas/qmsum.jsonl
 "
 
 
 LANGUAGE_INPUT_PATHS["zh"]="
+./processed_datas/multifieldqa_zh.jsonl
 "  
 
 
