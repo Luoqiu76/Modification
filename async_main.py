@@ -78,7 +78,7 @@ def get_entitys(text:str, llm:Union[LLM, AsyncLLM], **kwargs) -> List[Entity]:
 
 
 async def baseline_async(args, text, overall_modification:str):
-    if not args.azure:
+    if not args.enable_azure:
         llm = AsyncLLM(
             model_name=args.chat_model,
             base_url=args.chat_base_url,
@@ -342,7 +342,7 @@ async def final_modify_async(args, text:str, tree:Node, llm:AsyncLLM, **kwargs) 
     return response
 
 async def pipeline_async(args, text:str, overall_modification:str):
-    if not args.azure:
+    if not args.enable_azure:
         llm = AsyncLLM(args.chat_model, args.chat_base_url, args.chat_api_key, args.log_path)
     else:
         llm = AzureLLM(
@@ -525,7 +525,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_concurrent", default=None, type=int, help="The max concurrent of the async pipeline only for the stage 2, None means no limit")
     parser.add_argument("--max_rate_limit", default=None, type=int, help="The max rate limit of the async pipeline only for the stage 2, None means no limit, the time wait between the tasks whose unit is second")
     parser.add_argument("--batch_size", default=32, type=int, help="The batch size of the async pipeline only for the stage 2 , None means no limit")
-    parser.add_argument("--azure", action="store_true", help="Whether to use the azure model")
+    parser.add_argument("--enable_azure", action="store_true", help="Whether to use the azure model")
     args = parser.parse_args()
     args = process_args(args)
     get_prompt(args.language)

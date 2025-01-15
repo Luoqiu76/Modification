@@ -23,7 +23,7 @@ export JUDGE_CONFIG_NAME="gpt-4o"
 
 
 # max concurrent coroutines in every time
-MAX_CONCURRENT=4
+MAX_CONCURRENT=64
 # wait time when one coroutine is finished 
 MAX_RATE_LIMIT=2
 # batch size for api request
@@ -31,7 +31,7 @@ BATCH_SIZE=128
 
 
 # pipline config
-DEPTH_LIMIT=1
+DEPTH_LIMIT=2
 CHUNK_SIZE=4096
 CHUNK_OVERLAP=0
 
@@ -42,18 +42,11 @@ CHUNK_OVERLAP=0
 declare -A LANGUAGE_INPUT_PATHS
 
 LANGUAGE_INPUT_PATHS["en"]="
-./processed_datas/data_narrative_qa.jsonl \
-./processed_datas/data_quality_v1.0.1_train_dev_test.jsonl \
-./processed_datas/gov_report_e.jsonl \
-./processed_datas/multifieldqa_en.jsonl \
-./processed_datas/musique.jsonl \
-./processed_datas/qasper.jsonl \
 ./processed_datas/qmsum.jsonl
 "
 
 
 LANGUAGE_INPUT_PATHS["zh"]="
-./processed_datas/multifieldqa_zh.jsonl
 "  
 
 
@@ -105,7 +98,7 @@ for LANGUAGE in "en" "zh"; do
             --max_concurrent "$MAX_CONCURRENT" \
             --max_rate_limit "$MAX_RATE_LIMIT" \
             --batch_size "$BATCH_SIZE" \
-            --enable_azure \
+            --enable_azure
         
         echo "Start eval"
         
@@ -121,6 +114,6 @@ for LANGUAGE in "en" "zh"; do
             --max_concurrent "$MAX_CONCURRENT" \
             --max_rate_limit "$MAX_RATE_LIMIT" \
             --batch_size "$BATCH_SIZE" \
-            --enable_azure \
+            --enable_azure
     done
 done
