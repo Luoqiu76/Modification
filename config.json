@@ -1,0 +1,48 @@
+{
+    "client_config" : {
+        "openai_config" : {
+            "api_key" : "sk-6yr7BWUpTq1f26CHrAV5OJ0i90GpJtyqRVMEuXPue2B4lRkj",
+            "base_url" : "https://xiaoai.plus/v1",
+            "timeout" : 1200,
+            "max_retries" : 5
+        },
+        "azure_config" : {
+            "azure_endpoint" : "NOT_GIVEN",
+            "max_retries" : 5,
+            "api_version" : "2023-03-15-preview",
+            "timeout" : 1200,
+            "api_key" : "NOT_GIVEN"
+        }
+    },
+    "model_config" : {
+        "model" : "gpt-4o-mini",
+        "max_tokens" : 16384,
+        "n" : 1,
+        "stream" : true,
+        "temperature" : 0,
+        "top_p" : 0.95
+    },
+    "pipeline_config" : {
+        "chunks_config" : {
+            "chunk_size": 4096,
+            "chunk_overlap": 0,
+            "separators": ["。", "？", "！", ".", "?", "!"]
+        },
+        "enable_response_chunking": false,
+        "depth_limit": 1
+    },
+    "async_config" : {
+        "max_concurrent" : 32, 
+        "max_rate_limit" : 1,
+        "batch_size": 32
+    },
+    "enable_async" : true,
+
+    "enable_stream" : true,
+    "enable_baseline" : true,
+    "enable_azure" : false,
+    "max_retries" : 5,
+    "eval_config" : {
+        "epsilon" : 0.01
+    }
+}

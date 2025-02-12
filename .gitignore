@@ -9,3 +9,5 @@ datas
 /processed_datas/test.jsonl
 /processed_datas/statistic
 /results/gpt-4o-mini/test/
+/tmp
+/results

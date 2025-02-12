@@ -10,31 +10,32 @@
 
 # ./processed_datas/multifieldqa_zh.jsonl
 # api config for openai api
-CHAT_API_KEY="sk-6yr7BWUpTq1f26CHrAV5OJ0i90GpJtyqRVMEuXPue2B4lRkj"
-CHAT_BASE_URL="https://xiaoai.plus/v1"
-CHAT_MODEL="gpt-4o-mini"
-JUDGE_MODEL="gpt-4o-mini"
+# CHAT_API_KEY="sk-6yr7BWUpTq1f26CHrAV5OJ0i90GpJtyqRVMEuXPue2B4lRkj"
+# CHAT_BASE_URL="https://xiaoai.plus/v1"
+# CHAT_MODEL="gpt-4o-mini"
+# JUDGE_MODEL="gpt-4o-mini"
 
 
-export OPENAI_API_KEY=""
-export CONFIG_NAME="gpt-4o"
-export JUDGE_CONFIG_NAME="gpt-4o"
+# export OPENAI_API_KEY=""
+# export CONFIG_NAME="gpt-4o"
+# export JUDGE_CONFIG_NAME="gpt-4o"
 
 
 
-# max concurrent coroutines in every time
-MAX_CONCURRENT=64
-# wait time when one coroutine is finished 
-MAX_RATE_LIMIT=2
-# batch size for api request
-BATCH_SIZE=128
+# # max concurrent coroutines in every time
+# MAX_CONCURRENT=64
+# # wait time when one coroutine is finished 
+# MAX_RATE_LIMIT=2
+# # batch size for api request
+# BATCH_SIZE=128
 
 
 # pipline config
-DEPTH_LIMIT=1
-CHUNK_SIZE=4096
-CHUNK_OVERLAP=0
-
+# DEPTH_LIMIT=1
+# CHUNK_SIZE=4096
+# CHUNK_OVERLAP=0
+CHAT_MODEL="gpt-4o-mini"
+RUN_NAME="chunk_size_no_limit"
 
 
 
@@ -57,7 +58,7 @@ LANGUAGE_INPUT_PATHS["zh"]="
 "  
 
 
-SAVE_DIR="./results/$CHAT_MODEL/depth_${DEPTH_LIMIT}_chunk_${CHUNK_SIZE}_chunk_overlap_${CHUNK_OVERLAP}_no_chunk"
+SAVE_DIR="./results/$CHAT_MODEL/$RUN_NAME"
 
 
 for LANGUAGE in "en" "zh"; do
@@ -88,39 +89,25 @@ for LANGUAGE in "en" "zh"; do
         mkdir -p "$WORK_DIR"
         
         
-        python async_main.py \
-            --chat_api_key "$CHAT_API_KEY" \
-            --chat_base_url "$CHAT_BASE_URL" \
-            --chat_model "$CHAT_MODEL" \
-            --input_path "$INPUT_PATH" \
-            --work_dir "$WORK_DIR" \
-            --depth_limit "$DEPTH_LIMIT" \
-            --chunk_size "$CHUNK_SIZE" \
-            --language "$LANGUAGE" \
-            --chunk_overlap "$CHUNK_OVERLAP" \
-            --enable_log \
-            --enable_baseline \
-            --enable_stream \
-            --async_stage 2 \
-            --max_concurrent "$MAX_CONCURRENT" \
-            --max_rate_limit "$MAX_RATE_LIMIT" \
-            --batch_size "$BATCH_SIZE" \
-            --enable_azure
+        python -u main.py \
+        --input_path "$INPUT_PATH" \
+        --work_dir "$WORK_DIR" \
+        --language "$LANGUAGE"
+
+
+
+
         
         echo "Start eval"
         
        
-        python eval.py \
-            --chat_api_key "$CHAT_API_KEY" \
-            --chat_base_url "$CHAT_BASE_URL" \
-            --chat_model "$CHAT_MODEL" \
+        python -u eval.py \
             --work_dir "$WORK_DIR" \
-            --enable_async \
-            --enable_stream \
-            --language "$LANGUAGE" \
-            --max_concurrent "$MAX_CONCURRENT" \
-            --max_rate_limit "$MAX_RATE_LIMIT" \
-            --batch_size "$BATCH_SIZE" \
-            --enable_azure
+            --language "$LANGUAGE"
     done
 done
+
+echo "Start summary"
+
+python -u post_run.py \
+--work_dir "$SAVE_DIR"
