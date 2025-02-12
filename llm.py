@@ -190,7 +190,7 @@ class LLM():
         self.model_config = get_config("model_config")
         self.has_created_log = False
     @retry_on_failure_sync(max_retries=get_config()['max_retries'])
-    def get_response_sync(self, prompt:Union[list, str], log_stage:Union[str, None], **llm_generate_kwargs):
+    def get_response_sync(self, prompt:Union[list, str], log_stage:Union[str, None] = None, **llm_generate_kwargs):
         model_config = union_dicts(self.model_config, llm_generate_kwargs)
         if self.has_created_log is False:
             if self.log_path is not None:
@@ -222,7 +222,7 @@ class LLM():
         log_with_stage(log_stage, prompt, result, self.log_path)
         return result
     @retry_on_failure_async(max_retries=get_config()['max_retries'], max_concurrent=get_config('async_config')['max_concurrent'])
-    async def get_response_async(self, prompt:Union[list, str], log_stage: Union[str, None], **llm_generate_kwargs):
+    async def get_response_async(self, prompt:Union[list, str], log_stage: Union[str, None] = None, **llm_generate_kwargs):
         model_config = union_dicts(self.model_config, llm_generate_kwargs)
         if self.has_created_log is False:
             if self.log_path is not None:

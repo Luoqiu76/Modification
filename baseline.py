@@ -30,7 +30,8 @@ class Baseline:
             "gpt-3.5-turbo": 4096 - len(tiktoken.get_encoding("cl100k_base").encode(prompt)),
             "gpt-4o" : 16384,
             "gpt-4o-mini" : 16384,
-            "qwen-turbo-1101" : 8192
+            "qwen-turbo-1101" : 8192,
+            "gpt-4-32k" : 16384
         }
         self.llm_kwargs['max_tokens'] = max_tokens_dict[self.llm_kwargs['model']]
         response = await self.llm.get_response_async(

@@ -34,7 +34,7 @@
 # DEPTH_LIMIT=1
 # CHUNK_SIZE=4096
 # CHUNK_OVERLAP=0
-CHAT_MODEL="gpt-4o-mini"
+CHAT_MODEL="gpt-4o-32k"
 RUN_NAME="chunk_size_no_limit"
 
 
@@ -92,7 +92,8 @@ for LANGUAGE in "en" "zh"; do
         python -u main.py \
         --input_path "$INPUT_PATH" \
         --work_dir "$WORK_DIR" \
-        --language "$LANGUAGE"
+        --language "$LANGUAGE" \
+        --max_samples 1
 
 
 

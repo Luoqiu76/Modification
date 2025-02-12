@@ -48,6 +48,7 @@ def process_config(config: dict) -> dict:
 
     if config["api_key"] =="NOT_GIVEN":
         config["api_key"] = os.getenv("OPENAI_API_KEY")
+    return config
 
 def get_config(config_name : Union[str, None] = None) -> dict:
     """
@@ -62,7 +63,6 @@ def get_config(config_name : Union[str, None] = None) -> dict:
             config = json.load(f)
         config['client_config']['azure_config'] = process_config(config['client_config']['azure_config'])
         setattr(get_config, "config", config)
-
     if config_name is None:
         return config
     if "/" in config_name:
@@ -334,9 +334,14 @@ def retry_on_failure_async(max_retries=3, max_concurrent=5, return_time=False):
                         retries += 1
                         error_info = (e, repr(traceback.format_exc()))
                         errors.append(error_info)
+                        # print(retries)
+                        # print(error_info)
                         elapsed_time = timer()
                         if retries > max_retries:
-                            return Errors(errors), elapsed_time / (retries + 1) if return_time else Errors(errors)
+                            if return_time:
+                                return Errors(errors), elapsed_time / (retries + 1)
+                            else:
+                                return Errors(errors)
                         else:
                             await asyncio.sleep(get_wait_time(retries))  # 等待一段时间后重试
         return wrapper
@@ -364,12 +369,16 @@ def retry_on_failure_sync(max_retries=3, return_time=False):
                         else:
                             return result
                     except Exception as e:
+
                         retries += 1
                         error_info = (e, repr(traceback.format_exc()))
                         errors.append(error_info)
                         elapsed_time = timer()
                         if retries > max_retries:
-                            return Errors(errors), elapsed_time / (retries + 1) if return_time else Errors(errors)
+                            if return_time:
+                                return Errors(errors), elapsed_time / (retries + 1)
+                            else:
+                                return Errors(errors)
                         else:
                             delay_seconds = get_wait_time(retries)
                             time.sleep(delay_seconds)
