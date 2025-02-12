@@ -55,13 +55,14 @@ def get_config(config_name : Union[str, None] = None) -> dict:
     If config_name is spilted by "/", get the lower level config.
     eg. A/B then get obj["A"]["B"]
     """
-    # 帮我改成就第一次调用要打开文件，调用完成后把config保存起来，后续调用直接返回config里的相关配置
     if hasattr(get_config, "config"):
         config = getattr(get_config, "config")
     else:
         with open(r"./config.json", "r", encoding="utf-8") as f:
             config = json.load(f)
+        config['azure_config'] = process_config(config['azure_config'])
         setattr(get_config, "config", config)
+
     if config_name is None:
         return config
     if "/" in config_name:
