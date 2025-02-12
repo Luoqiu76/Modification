@@ -60,7 +60,7 @@ def get_config(config_name : Union[str, None] = None) -> dict:
     else:
         with open(r"./config.json", "r", encoding="utf-8") as f:
             config = json.load(f)
-        config['azure_config'] = process_config(config['azure_config'])
+        config['client_config/azure_config'] = process_config(config['client_config/azure_config'])
         setattr(get_config, "config", config)
 
     if config_name is None:
