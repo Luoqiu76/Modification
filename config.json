@@ -15,7 +15,7 @@
         }
     },
     "model_config" : {
-        "model" : "gpt-4-32k",
+        "model" : "gpt-4o-mini",
         "max_tokens" : 16384,
         "n" : 1,
         "stream" : true,
@@ -40,7 +40,7 @@
 
     "enable_stream" : true,
     "enable_baseline" : true,
-    "enable_azure" : true,
+    "enable_azure" : false,
     "max_retries" : 5,
     "eval_config" : {
         "epsilon" : 0.01

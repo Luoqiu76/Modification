@@ -34,7 +34,7 @@
 # DEPTH_LIMIT=1
 # CHUNK_SIZE=4096
 # CHUNK_OVERLAP=0
-CHAT_MODEL="gpt-4o-32k"
+CHAT_MODEL="gpt-4o-mini"
 RUN_NAME="chunk_size_no_limit"
 
 
@@ -42,14 +42,11 @@ RUN_NAME="chunk_size_no_limit"
 
 declare -A LANGUAGE_INPUT_PATHS
 
-LANGUAGE_INPUT_PATHS["en"]="
-./processed_datas/data_narrative_qa.jsonl \
-./processed_datas/data_quality_v1.0.1_train_dev_test.jsonl \
-./processed_datas/gov_report_e.jsonl \
-./processed_datas/multifieldqa_en.jsonl \
+LANGUAGE_INPUT_PATHS["en"]=" \
 ./processed_datas/musique.jsonl \
 ./processed_datas/qasper.jsonl \
-./processed_datas/qmsum.jsonl
+./processed_datas/qmsum.jsonl \
+./processed_datas/data_quality_v1.0.1_train_dev_test.jsonl \
 "
 
 
@@ -92,8 +89,7 @@ for LANGUAGE in "en" "zh"; do
         python -u main.py \
         --input_path "$INPUT_PATH" \
         --work_dir "$WORK_DIR" \
-        --language "$LANGUAGE" \
-        --max_samples 1
+        --language "$LANGUAGE"
 
 
 
