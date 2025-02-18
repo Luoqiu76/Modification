@@ -11,3 +11,5 @@ datas
 /results/gpt-4o-mini/test/
 /tmp
 /results
+*.sh
+/config.json

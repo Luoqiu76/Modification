@@ -36,7 +36,6 @@ def result_analysis(results : List[dict]):
         "win_rate" : 0.0,
         "tie_rate" : 0.0,
         "win_tie_rate" : 0.0,
-        "errors" : [],
         "total" : 0 ,
         "judge_error" : 0,
         "model_response_error" : 0
@@ -45,29 +44,27 @@ def result_analysis(results : List[dict]):
         ours = result['ours']
         baselines = result['baseline']
         result = result['result']
+        # if the model response is None, then the model response error
         if ours is None or baselines is None:
             return_result["model_response_error"] += 1
             return_result["total"] += 1
             continue
-
-        try:
-            if result["win"] == "OURS":
-                return_result["win"] += 1
-            elif result["win"] == "BASELINES":
-                return_result["lose"] += 1
-            else:
-                return_result["tie"] += 1
+        # if the result is Errors, then the judge error
+        if isinstance(result, Errors):
+            return_result["judge_error"] += 1
             return_result["total"] += 1
-        except Exception as e:
-            return_result['errors'].append({
-                "error_result" : result,
-                "error_idx" : idx,
-                "error_message" : str(e)
-            })
-            return_result['judge_error'] += 1
+            continue
 
-    return_result["win_rate"] = return_result["win"] / (return_result["total"] - return_result["judge_error"] - return_result["model_response_error"] + get_config("eval_config")['epsilon'])
-    return_result["tie_rate"] = return_result["tie"] / (return_result["total"] - return_result["judge_error"] - return_result["model_response_error"] + get_config("eval_config")['epsilon'])
+        if result["win"] == "OURS":
+            return_result["win"] += 1
+        elif result["win"] == "BASELINES":
+            return_result["lose"] += 1
+        else:
+            return_result["tie"] += 1
+        return_result["total"] += 1
+    real_count = return_result["total"] - return_result["judge_error"] - return_result["model_response_error"] + get_config("eval_config")['epsilon'] # for epsilon smoothing
+    return_result["win_rate"] = return_result["win"] / real_count
+    return_result["tie_rate"] = return_result["tie"] / real_count
     return_result["win_tie_rate"] = return_result["win_rate"] + return_result["tie_rate"]
     return return_result
     
@@ -155,7 +152,7 @@ def main_sync(args):
             })
     baseline_pre_result = result_analysis(final_result["baseline_pre"])
     ours_pre_result = result_analysis(final_result["ours_pre"])
-
+    real_count_total = baseline_pre_result["total"] + ours_pre_result["total"] - baseline_pre_result["judge_error"] - ours_pre_result["judge_error"] - baseline_pre_result["model_response_error"] - ours_pre_result["model_response_error"] + get_config("eval_config")['epsilon']
     final_result_anlysis = {
         "baseline_pre" : baseline_pre_result,
         "ours_pre" : ours_pre_result,
@@ -163,9 +160,9 @@ def main_sync(args):
             "win" : baseline_pre_result["win"] + ours_pre_result["win"],
             "lose" : baseline_pre_result["lose"] + ours_pre_result["lose"],
             "tie" : baseline_pre_result["tie"] + ours_pre_result["tie"],
-            "win_rate" : (baseline_pre_result["win"] + ours_pre_result["win"]) / (baseline_pre_result["total"] + ours_pre_result["total"] - baseline_pre_result["judge_error"] - ours_pre_result["judge_error"] - baseline_pre_result["model_response_error"] - ours_pre_result["model_response_error"] + get_config("eval_config")['epsilon']),
-            "tie_rate" : (baseline_pre_result["tie"] + ours_pre_result["tie"]) / (baseline_pre_result["total"] + ours_pre_result["total"] - baseline_pre_result["judge_error"] - ours_pre_result["judge_error"] - baseline_pre_result["model_response_error"] - ours_pre_result["model_response_error"] + get_config("eval_config")['epsilon']),
-            "win_tie_rate" : (baseline_pre_result["win"] + ours_pre_result["win"] + baseline_pre_result["tie"] + ours_pre_result["tie"]) / (baseline_pre_result["total"] + ours_pre_result["total"] - baseline_pre_result["judge_error"] - ours_pre_result["judge_error"] - baseline_pre_result["model_response_error"] - ours_pre_result["model_response_error"] + get_config("eval_config")['epsilon']),
+            "win_rate" : (baseline_pre_result["win"] + ours_pre_result["win"]) / real_count_total,
+            "tie_rate" : (baseline_pre_result["tie"] + ours_pre_result["tie"]) / real_count_total,
+            "win_tie_rate" : (baseline_pre_result['win'] + ours_pre_result['win'] + baseline_pre_result['tie'] + ours_pre_result['tie']) / real_count_total,
         },
         "ours_time" : np.mean([data['ours_time'] for data in datas]),
         "baseline_time" : np.mean([data['baseline_time'] for data in datas]),
@@ -230,8 +227,48 @@ async def main_async(args):
     # all_results = [result for (result, _) in all_results]
     ours_pre_results = all_results[:len(ours_pre_tasks)]
     baseline_pre_results = all_results[len(ours_pre_tasks):]
-    extract_ours_pre_results_tasks = [asyncio.ensure_future(llm.get_response_async(
-        prompt = [
+    async def extract_json_result(pre_messages : List, response : Union[str, Errors], data: dict) -> Union[dict, Errors]:
+        # judge error
+        if isinstance(response, Errors):
+            return response
+        messages = pre_messages + [
+            {"role" : "assistant", "content" : response},
+            {"role" : "user", "content" : prompts['extract_eval_result']}
+        ]
+        try:
+            return process_json_output(
+                output = await llm.get_response_async(
+                    prompt = messages,
+                    log_stage = "EXTRACT_JSON",
+                    **llm_kwargs
+                )
+            )
+        except Exception as e:
+            return Errors(
+                [
+                    (e, repr(traceback.format_exc()))
+                ]
+            )
+        
+    # extract_ours_pre_results_tasks = [asyncio.ensure_future(llm.get_response_async(
+    #     prompt = [
+    #         {"role" : "system", "content" : prompts['eval_system']},
+    #         {"role" : "user", "content" : prompts['eval'].format(
+    #             original = data["original_text"],
+    #             feedback = data["edit_suggestion"],
+    #             model1 = "OURS",
+    #             model2 = "BASELINES",
+    #             article1 = data["ours"],
+    #             article2 = data["baseline"]
+    #         )},
+    #         {"role" : "assistant", "content" : str(result)}, # if the first response isinstance(Errors) then the result is str, can be processed in anlysis function
+    #         {"role" : "user", "content" : prompts['extract_eval_result']}
+    #     ],
+    #     log_stage = "EXTRACT_JSON",
+    #     **llm_kwargs
+    # )) for data, result in zip(datas, ours_pre_results)]
+    extract_ours_pre_results_tasks = [asyncio.ensure_future(extract_json_result(
+        pre_messages = [
             {"role" : "system", "content" : prompts['eval_system']},
             {"role" : "user", "content" : prompts['eval'].format(
                 original = data["original_text"],
@@ -240,15 +277,30 @@ async def main_async(args):
                 model2 = "BASELINES",
                 article1 = data["ours"],
                 article2 = data["baseline"]
-            )},
-            {"role" : "assistant", "content" : str(result)}, # if the first response isinstance(Errors) then the result is str, can be processed in anlysis function
-            {"role" : "user", "content" : prompts['extract_eval_result']}
+            )}
         ],
-        log_stage = "EXTRACT_JSON",
-        **llm_kwargs
+        response = result,
+        data = data
     )) for data, result in zip(datas, ours_pre_results)]
-    extract_baseline_pre_results_tasks = [asyncio.ensure_future(llm.get_response_async(
-        prompt = [
+    # extract_baseline_pre_results_tasks = [asyncio.ensure_future(llm.get_response_async(
+    #     prompt = [
+    #         {"role" : "system", "content" : prompts['eval_system']},
+    #         {"role" : "user", "content" : prompts['eval'].format(
+    #             original = data["original_text"],
+    #             feedback = data["edit_suggestion"],
+    #             model1 = "BASELINES",
+    #             model2 = "OURS",
+    #             article1 = data["baseline"],
+    #             article2 = data["ours"]
+    #         )},
+    #         {"role" : "assistant", "content" : str(result)}, # if the first response isinstance(Errors) then the result is str, can be processed in anlysis function
+    #         {"role" : "user", "content" : prompts['extract_eval_result']}
+    #     ],
+    #     log_stage = "EXTRACT_JSON",
+    #     **llm_kwargs
+    # )) for data, result in zip(datas, baseline_pre_results)]
+    extract_baseline_pre_results_tasks = [asyncio.ensure_future(extract_json_result(
+        pre_messages = [
             {"role" : "system", "content" : prompts['eval_system']},
             {"role" : "user", "content" : prompts['eval'].format(
                 original = data["original_text"],
@@ -257,15 +309,12 @@ async def main_async(args):
                 model2 = "OURS",
                 article1 = data["baseline"],
                 article2 = data["ours"]
-            )},
-            {"role" : "assistant", "content" : str(result)}, # if the first response isinstance(Errors) then the result is str, can be processed in anlysis function
-            {"role" : "user", "content" : prompts['extract_eval_result']}
+            )}
         ],
-        log_stage = "EXTRACT_JSON",
-        **llm_kwargs
+        response = result,
+        data = data
     )) for data, result in zip(datas, baseline_pre_results)]
     all_tasks = extract_ours_pre_results_tasks + extract_baseline_pre_results_tasks
-
     all_results = []
     for idx, tasks in enumerate(batch_task_generator(all_tasks, get_config("async_config")['batch_size'])):
         results = await tqdm_asyncio.gather(*tasks, desc="Processing the {}/{} batch in extracting result".format(idx + 1, math.ceil(len(all_tasks) / get_config("async_config")['batch_size'])))
@@ -277,28 +326,28 @@ async def main_async(args):
     
     # ours_pre_results_final = [process_json_output(output = result) for result in ours_pre_results_final]
     # baseline_pre_results_final = [process_json_output(output = result) for result in baseline_pre_results_final]
-    tmp_ours_pre_results_final = []
-    tmp_baseline_pre_results_final = []
-    for result in ours_pre_results_final:
-        try:
-            tmp_ours_pre_results_final.append(process_json_output(output = result))
-        except Exception as e:
-            tmp_ours_pre_results_final.append(Errors(
-                [
-                    (e, repr(traceback.format_exc()))
-                ]
-            ))
-    for result in baseline_pre_results_final:
-        try:
-            tmp_baseline_pre_results_final.append(process_json_output(output = result))
-        except Exception as e:
-            tmp_baseline_pre_results_final.append(Errors(
-                [
-                    (e, repr(traceback.format_exc()))
-                ]
-            ))
-    ours_pre_results_final = tmp_ours_pre_results_final
-    baseline_pre_results_final = tmp_baseline_pre_results_final
+    # tmp_ours_pre_results_final = []
+    # tmp_baseline_pre_results_final = []
+    # for result in ours_pre_results_final:
+    #     try:
+    #         tmp_ours_pre_results_final.append(process_json_output(output = result))
+    #     except Exception as e:
+    #         tmp_ours_pre_results_final.append(Errors(
+    #             [
+    #                 (e, repr(traceback.format_exc()))
+    #             ]
+    #         ))
+    # for result in baseline_pre_results_final:
+    #     try:
+    #         tmp_baseline_pre_results_final.append(process_json_output(output = result))
+    #     except Exception as e:
+    #         tmp_baseline_pre_results_final.append(Errors(
+    #             [
+    #                 (e, repr(traceback.format_exc()))
+    #             ]
+    #         ))
+    # ours_pre_results_final = tmp_ours_pre_results_final
+    # baseline_pre_results_final = tmp_baseline_pre_results_final
     final_result = {
         "baseline_pre" : [],
         "ours_pre" : []
@@ -311,7 +360,7 @@ async def main_async(args):
             "ours" : data["ours"],
             "baseline" : data["baseline"],
             "response" : baseline_pre_result,
-            "result" : baseline_pre_result_final if not isinstance(baseline_pre_result_final, Errors) else str(baseline_pre_result_final),
+            "result" : baseline_pre_result_final,
         })
         final_result['ours_pre'].append({
             "original" : data["original_text"],
@@ -319,10 +368,11 @@ async def main_async(args):
             "ours" : data["ours"],
             "baseline" : data["baseline"],
             "response" : ours_pre_result,
-            "result" : ours_pre_result_final if not isinstance(ours_pre_result_final, Errors) else str(ours_pre_result_final),
+            "result" : ours_pre_result_final,
         })
     baseline_pre_result = result_analysis(final_result["baseline_pre"])
     ours_pre_result = result_analysis(final_result["ours_pre"])
+    real_count_total = baseline_pre_result["total"] + ours_pre_result["total"] - baseline_pre_result["judge_error"] - ours_pre_result["judge_error"] - baseline_pre_result["model_response_error"] - ours_pre_result["model_response_error"] + get_config("eval_config")['epsilon']
     final_result_anlysis = {
         "baseline_pre" : baseline_pre_result,
         "ours_pre" : ours_pre_result,
@@ -330,9 +380,9 @@ async def main_async(args):
             "win" : baseline_pre_result["win"] + ours_pre_result["win"],
             "lose" : baseline_pre_result["lose"] + ours_pre_result["lose"],
             "tie" : baseline_pre_result["tie"] + ours_pre_result["tie"],
-            "win_rate" : (baseline_pre_result["win"] + ours_pre_result["win"]) / (baseline_pre_result["total"] + ours_pre_result["total"] - baseline_pre_result["judge_error"] - ours_pre_result["judge_error"] - baseline_pre_result["model_response_error"] - ours_pre_result["model_response_error"] + get_config("eval_config")['epsilon']),
-            "tie_rate" : (baseline_pre_result["tie"] + ours_pre_result["tie"]) / (baseline_pre_result["total"] + ours_pre_result["total"] - baseline_pre_result["judge_error"] - ours_pre_result["judge_error"] - baseline_pre_result["model_response_error"] - ours_pre_result["model_response_error"] + get_config("eval_config")['epsilon']),
-            "win_tie_rate" : (baseline_pre_result["win"] + ours_pre_result["win"] + baseline_pre_result["tie"] + ours_pre_result["tie"]) / (baseline_pre_result["total"] + ours_pre_result["total"] - baseline_pre_result["judge_error"] - ours_pre_result["judge_error"] - baseline_pre_result["model_response_error"] - ours_pre_result["model_response_error"] + get_config("eval_config")['epsilon']),
+            "win_rate" : (baseline_pre_result["win"] + ours_pre_result["win"]) / (real_count_total + get_config("eval_config")['epsilon']),
+            "tie_rate" : (baseline_pre_result["tie"] + ours_pre_result["tie"]) / (real_count_total + get_config("eval_config")['epsilon']),
+            "win_tie_rate" : (baseline_pre_result["win"] + ours_pre_result["win"] + baseline_pre_result["tie"] + ours_pre_result["tie"]) / (real_count_total + get_config("eval_config")['epsilon']),
         },
         "ours_time" : np.mean([data['ours_time'] for data in datas] if all([data['ours_time'] is not None for data in datas]) else 0),
         "baseline_time" : np.mean([data['baseline_time'] for data in datas] if all([data['baseline_time'] is not None for data in datas]) else 0),

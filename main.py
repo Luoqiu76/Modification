@@ -16,7 +16,9 @@ def get_prompts(language: str)->dict:
             "find": FIND_PROMPT_EN,
             "base_tree_modification": BASE_TREE_PROMPT_EN,
             "final_modification": FINAL_MODIFY_EN,
-            "baseline": BASELINE_PROMPT_EN
+            "baseline": BASELINE_PROMPT_EN,
+            "final_modification_naive_chunk" : FINAL_MODIFY_CHUNK_EN,
+            "final_modification_context_chunk" : FINAL_MODIFICATION_WITH_CONTEXT_CHUNK_EN
         }
     elif language == "zh":
         return {
@@ -25,7 +27,9 @@ def get_prompts(language: str)->dict:
             "find": FIND_PROMPT_ZH,
             "base_tree_modification": BASE_TREE_PROMPT_ZH,
             "final_modification": FINAL_MODIFY_ZH,
-            "baseline": BASELINE_PROMPT_ZH
+            "baseline": BASELINE_PROMPT_ZH,
+            "final_modification_naive_chunk" : FINAL_MODIFY_CHUNK_ZH,
+            "final_modification_context_chunk" : FINAL_MODIFICATION_WITH_CONTEXT_CHUNK_ZH
         }
 
 def process_args(args):

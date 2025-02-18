@@ -108,6 +108,8 @@ def log_with_stage(stage: Union[str, None], prompt : str, response: Union[str, L
 
 
 def process_json_output(output: str) -> dict:
+    if type(output) is not str:
+        return output
     error = {
         "error" : "",
         "output" : None,

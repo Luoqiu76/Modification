@@ -36,12 +36,23 @@
 #         "ours_baseline_time_ratio": 4.032143187470911
 #     }
 from argparse import ArgumentParser
+from copy import deepcopy
 import os
 import json
 
 def main(args):
     final_results = {}
-    for dataset_name in os.listdir(args.work_dir):
+    dataset_names = [
+        "musique",
+        "qasper",
+        "qmsum",
+        "gov_report_e",
+        "multifieldqa_en",
+        "data_quality_v1.0.1_train_dev_test",
+        "data_narrative_qa",
+        "multifieldqa_zh"
+    ]
+    for dataset_name in dataset_names:
         if not os.path.isdir(os.path.join(args.work_dir, dataset_name)):
             continue
         dataset_result_dir = os.path.join(args.work_dir, dataset_name)
@@ -93,7 +104,7 @@ def main(args):
         for key in ['ours_time', 'baseline_time', 'ours_baseline_time_ratio']:
             sum_analysis[key] += analysis[key]
     final_results['sum'] = sum_analysis
-    avg_analysis = sum_analysis.copy()
+    avg_analysis = deepcopy(sum_analysis)
     for key in ['baseline_pre', 'ours_pre', 'total']:
         for subkey in ['win', 'lose', 'tie', 'win_rate', 'tie_rate', 'win_tie_rate', 'total', 'judge_error', 'model_response_error']:
             if key == 'total' and subkey in ['total', 'judge_error', 'model_response_error']:

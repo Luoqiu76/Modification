@@ -261,7 +261,7 @@ class FinalModification:
             chunks = text_spilter.get_chunks(text)
             responses = []
             for chunk in chunks:
-                prompt = self.prompts['final_modification'].format(
+                prompt = self.prompts['final_modification_naive_chunk'].format(
                     text = chunk,
                     tree = tree_modification
                 )
@@ -290,7 +290,7 @@ class FinalModification:
             )
             chunks = text_spilter.get_chunks(text)
             responses = await asyncio.gather(*[self.llm.get_response_async(
-                    prompt = self.prompts['final_modification'].format(
+                    prompt = self.prompts['final_modification_naive_chunk'].format(
                         text = chunk,
                         tree = tree_modification
                     ),
@@ -300,6 +300,102 @@ class FinalModification:
                 for chunk in chunks])
             return "".join(responses)
         
+class FinalModificationNaiveChunk(FinalModification):
+    def __init__(self, prompts: dict, llm: LLM, llm_kwargs: dict, chunks_config : dict):
+        super().__init__(prompts, llm, llm_kwargs, chunks_config)
+    
+    def forward_sync(self, text: str, tree_modification: dict) -> str:
+        text_spilter = FixedTokensTextSplitter(
+            **self.chunks_config 
+        )
+        chunks = text_spilter.get_chunks(text)
+        responses = []
+        for chunk in chunks:
+            prompt = self.prompts['final_modification_naive_chunk'].format(
+                text = chunk,
+                tree = tree_modification
+            )
+            response = self.llm.get_response_sync(
+                prompt = prompt,
+                log_stage = "Get Final Modification",
+                **self.llm_kwargs
+      
+            )
+            responses.append(response)
+        return "".join(responses)
+
+    async def forward_async(self, text: str, tree_modification: dict) -> str:
+        text_spilter = FixedTokensTextSplitter(
+            **self.chunks_config 
+        )
+        chunks = text_spilter.get_chunks(text)
+        responses = await asyncio.gather(*[self.llm.get_response_async(
+                prompt = self.prompts['final_modification_naive_chunk'].format(
+                    text = chunk,
+                    tree = tree_modification
+                ),
+                log_stage = "Get Final Modification",
+                **self.llm_kwargs
+            )
+            for chunk in chunks])
+        return "".join(responses)
+    
+
+
+class FinalModificationContextChunk(FinalModification):
+    def __init__(self, prompts: dict, llm: LLM, llm_kwargs: dict, chunks_config : dict):
+        super().__init__(prompts, llm, llm_kwargs, chunks_config)
+
+    def forward_sync(self, text: str, tree_modification: dict) -> str:
+        context_chunk_config = get_config("pipeline_config/context_chunk_config")
+        context_ratio = context_chunk_config['context_ratio']
+        text_spilter_chunk_length = int(self.chunks_config['chunk_size'] * (1 - context_ratio))
+        self.chunks_config['chunk_size'] = text_spilter_chunk_length
+        text_spilter = FixedTokensTextSplitter(
+            **self.chunks_config 
+        )
+        chunks = text_spilter.get_chunks(text)
+        responses = []
+        for chunk in chunks:
+            previos_text = responses[-1] if len(responses) > 0 else ""
+            previos_text = previos_text[-int(self.chunks_config['chunk_size'] * context_ratio):] if len(previos_text) > 0 else ""
+            prompt = self.prompts['final_modification_context_chunk'].format(
+                text = chunk,
+                tree = tree_modification,
+                previous_text = previos_text
+            )
+            response = self.llm.get_response_sync(
+                prompt = prompt,
+                log_stage = "Get Final Modification",
+                **self.llm_kwargs
+            )
+            responses.append(response)
+        return "".join(responses)
+    async def forward_async(self, text: str, tree_modification: dict) -> str:
+        context_chunk_config = get_config("pipeline_config/context_chunk_config")
+        context_ratio = context_chunk_config['context_ratio']
+        text_spilter_chunk_length = int(self.chunks_config['chunk_size'] * (1 - context_ratio))
+        self.chunks_config['chunk_size'] = text_spilter_chunk_length
+        text_spilter = FixedTokensTextSplitter(
+            **self.chunks_config 
+        )
+        chunks = text_spilter.get_chunks(text)
+        responses = []
+        for chunk in chunks:
+            previos_text = responses[-1] if len(responses) > 0 else ""
+            previos_text = previos_text[-int(self.chunks_config['chunk_size'] * context_ratio):] if len(previos_text) > 0 else ""
+            prompt = self.prompts['final_modification_context_chunk'].format(
+                text = chunk,
+                tree = tree_modification,
+                previous_text = previos_text
+            )
+            response = await self.llm.get_response_async(
+                prompt = prompt,
+                log_stage = "Get Final Modification",
+                **self.llm_kwargs
+            )
+            responses.append(response)
+        return "".join(responses)
 
 class Pipeline:
     def __init__(self, prompts: dict, llm: LLM):
@@ -322,12 +418,27 @@ class Pipeline:
             llm = self.llm,
             llm_kwargs = self.llm_kwargs
         )
-        self.get_final_modification = FinalModification(
+        if get_config("pipeline_config")['enable_response_chunking']:
+            self.get_final_modification = FinalModificationNaiveChunk(
             prompts = prompts,
             llm = self.llm,
             llm_kwargs = self.llm_kwargs,
             chunks_config = get_config('pipeline_config/chunks_config')
         )
+        elif get_config("pipeline_config")['enable_response_context_chunking']:
+            self.get_final_modification = FinalModificationContextChunk(
+            prompts = prompts,
+            llm = self.llm,
+            llm_kwargs = self.llm_kwargs,
+            chunks_config = get_config('pipeline_config/chunks_config')
+        )
+        else:
+            self.get_final_modification = FinalModification(
+                prompts = prompts,
+                llm = self.llm,
+                llm_kwargs = self.llm_kwargs,
+                chunks_config = get_config('pipeline_config/chunks_config')
+            )
     @retry_on_failure_sync(max_retries=get_config()['max_retries'], return_time=True)   
     def forward_sync(self, text: str, overall_modification: str) -> str:
         entities = self.get_entities.forward_sync(overall_modification) # List[Entity]

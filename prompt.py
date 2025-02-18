@@ -448,3 +448,39 @@ Below is the full tree-structured summary:
 {tree}
 
 Please adjust the current paragraph based on the suggestions in the tree structure. You only need to provide the modified paragraph text, without any additional information."""
+
+FINAL_MODIFICATION_WITH_CONTEXT_CHUNK_EN = """You will modify a given paragraph based on a text summary in a tree structure, modification suggestions, and the previous paragraph to ensure coherence and fluency. Follow these steps:  
+
+1. Refer to the tree-structured text summary to understand the modification suggestions. The summary provides an overview of changes across the entire text, helping you locate and modify the current paragraph.  
+2. Identify the relevant section in the tree structure that corresponds to the current paragraph and apply the suggested modifications.  
+3. Incorporate the previous paragraph to ensure the revised text is coherent and flows naturally.  
+4. Return only the modified paragraph.  
+
+Below is the previous paragraph:  
+{previous_text}  
+
+Below is the original paragraph:  
+{text}  
+
+Below is the tree-structured summary of the entire text:  
+{tree}  
+
+Please modify the current paragraph according to the suggestions in the tree structure while ensuring smooth transitions with the previous paragraph. Provide only the revised paragraph without any additional information."""  
+
+
+FINAL_MODIFICATION_WITH_CONTEXT_CHUNK_ZH = """你将根据一段文本、修改建议和一棵树形结构的总结与修改建议，按照给定的修改建议生成最终的修改过后的文本。具体任务流程如下：  
+1. 参照树结构的文本总结，理解修改建议。树结构的文本总结提供了全文的修改建议，帮助你定位并修改当前段落。  
+2. 从树结构中找到与当前段落相关的部分，根据修改建议调整文本。  
+3. 结合上一段文本，使修改后的文本更加连贯、流畅。  
+4. 返回修改过后的段落文本。  
+
+以下是上一段文本：  
+{previous_text}  
+
+以下是当前段落的原始文本：  
+{text}  
+
+以下是全文的树结构总结：  
+{tree}  
+
+请根据树结构中的修改建议，结合上一段文本的内容，调整当前段落的文本，使其更加连贯、自然。你只需要提供修改过后的文本，不需要提供其他任何信息。"""
