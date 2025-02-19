@@ -13,3 +13,4 @@ datas
 /results
 *.sh
 /config.json
+/log.txt
